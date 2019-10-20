@@ -30,18 +30,18 @@ func main() {
 	app.Usage = "Jira worklog assistant console"
 	dbFilePath, err := getDotRc()
 	if err != nil {
-		log.Fatalf("Can't get db path: %s", err.Error())
+		log.Fatalf("can't get db path: %s", err.Error())
 	}
 	db := file.New(dbFilePath, "init")
-	credsComponent := creds.New(db)
+	credsComponent := creds.New(file.NewLazyReadWriter(db, "auth.json"))
 	jiraFactory := jiraf.NewFactory(credsComponent)
-	cfg := config.NewComponent(db)
+	cfg := config.NewComponent(file.NewLazyReadWriter(db, "config.json"))
 	if err := cfg.Init(); err != nil {
 		log.Fatalln(err)
 	}
 	tagComponent := tag.NewComponent(cfg)
 
-	timelineComponent := timeline.NewComponent(db, jiraFactory, cfg)
+	timelineComponent := timeline.NewComponent(file.NewLazyReadWriter(db, "timeline.json"), jiraFactory, cfg)
 
 	startFlags := []cli.Flag{
 		cli.StringFlag{

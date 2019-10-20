@@ -8,9 +8,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+type LazyReadWriter interface {
+	ReadData() ([]byte, error)
+	WriteData(data []byte) error
+}
+
+func NewLazyReadWriter(db *DB, file string) LazyReadWriter {
+	db.file = file
+	return db
+}
+
 type DB struct {
 	dir      string
 	initFile string
+	file     string
 }
 
 func New(dir string, initFile string) *DB {
@@ -43,16 +54,16 @@ func (db *DB) validateInit() error {
 	return nil
 }
 
-func (db *DB) ReadData(file string) ([]byte, error) {
+func (db *DB) ReadData() ([]byte, error) {
 	if err := db.validateInit(); err != nil {
 		return nil, errors.Wrap(err, "read data err")
 	}
-	return ioutil.ReadFile(filepath.Join(db.dir, file))
+	return ioutil.ReadFile(filepath.Join(db.dir, db.file))
 }
 
-func (db *DB) WriteData(file string, data []byte) error {
+func (db *DB) WriteData(data []byte) error {
 	if err := db.validateInit(); err != nil {
 		return errors.Wrap(err, "write data err")
 	}
-	return ioutil.WriteFile(filepath.Join(db.dir, file), data, 0644)
+	return ioutil.WriteFile(filepath.Join(db.dir, db.file), data, 0644)
 }

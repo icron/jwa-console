@@ -7,12 +7,11 @@ import (
 )
 
 type Component struct {
-	db   *file.DB
-	file string
+	db   file.LazyReadWriter
 }
 
-func New(db *file.DB) *Component {
-	return &Component{db: db, file: "auth.json"}
+func New(db file.LazyReadWriter) *Component {
+	return &Component{db: db}
 }
 
 func (s *Component) Save(m *Model) error {
@@ -20,11 +19,11 @@ func (s *Component) Save(m *Model) error {
 	if err != nil {
 		return err
 	}
-	return s.db.WriteData(s.file, data)
+	return s.db.WriteData(data)
 }
 
 func (s *Component) Get() (*Model, error) {
-	data, err := s.db.ReadData(s.file)
+	data, err := s.db.ReadData()
 	if err != nil {
 		return nil, err
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/andrskom/jwa-console/pkg/storage/file"
 	"github.com/andrskom/jwa-console/pkg/timeline"
 	"github.com/andrskom/jwa-console/pkg/tray"
+	"github.com/andrskom/jwa-console/pkg/config"
 )
 
 func main() {
@@ -27,12 +28,16 @@ func main() {
 	}
 	defer notify.Stop(c)
 
-
 	db := file.New(dbFilePath, "init")
-	credsComponent := creds.New(db)
+	credsComponent := creds.New(file.NewLazyReadWriter(db, "auth.json"))
 	jiraFactory := jiraf.NewFactory(credsComponent)
 
-	timelineComponent := timeline.NewComponent(db, jiraFactory)
+	cfg := config.NewComponent(file.NewLazyReadWriter(db, "config.json"))
+	if err := cfg.Init(); err != nil {
+		log.Fatalln(err)
+	}
+
+	timelineComponent := timeline.NewComponent(file.NewLazyReadWriter(db, "timeline.json"), jiraFactory, cfg)
 
 	greyAsset, err := tray.Asset("assets/grey.png")
 	if err != nil {
@@ -79,7 +84,6 @@ func main() {
 
 	})
 }
-
 
 func getDotRc() (string, error) {
 	usr, err := user.Current()

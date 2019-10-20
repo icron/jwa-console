@@ -38,16 +38,15 @@ func (m *Model) AsMap() map[string]string {
 }
 
 type Component struct {
-	db   *file.DB
-	file string
+	db   file.LazyReadWriter
 }
 
-func NewComponent(db *file.DB) *Component {
-	return &Component{db: db, file: "config.json"}
+func NewComponent(db file.LazyReadWriter) *Component {
+	return &Component{db: db}
 }
 
 func (c *Component) Init() error {
-	_, err := c.db.ReadData(c.file)
+	_, err := c.db.ReadData()
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -60,11 +59,11 @@ func (c *Component) Init() error {
 		return err
 	}
 
-	return c.db.WriteData(c.file, bytes)
+	return c.db.WriteData(bytes)
 }
 
 func (c *Component) GetCfg() (*Model, error) {
-	bytes, err := c.db.ReadData(c.file)
+	bytes, err := c.db.ReadData()
 	if err != nil {
 		return nil, err
 	}
@@ -83,5 +82,5 @@ func (c *Component) Save(m *Model) error {
 		return err
 	}
 
-	return c.db.WriteData(c.file, bytes)
+	return c.db.WriteData(bytes)
 }

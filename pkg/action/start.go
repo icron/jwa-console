@@ -47,8 +47,7 @@ func Start(
 			return err
 		}
 
-		fmt.Printf(`Start task %s %s
-`, model.Issue.Key, model.Issue.Fields.Summary)
+		fmt.Printf(`Start task %s %s`, model.Issue.Key, model.Issue.Fields.Summary)
 		return nil
 	}
 }

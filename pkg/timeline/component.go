@@ -15,19 +15,14 @@ import (
 	"github.com/andrskom/jwa-console/pkg/storage/file"
 )
 
-const (
-	IssueStatuNameInProgress = "In Progress"
-)
-
 type Component struct {
-	db          *file.DB
-	file        string
+	db          file.LazyReadWriter
 	jiraFactory *jiraf.Factory
 	cfg         *config.Component
 }
 
-func NewComponent(db *file.DB, jiraFactory *jiraf.Factory, cfg *config.Component) *Component {
-	return &Component{db: db, jiraFactory: jiraFactory, file: "timeline.json", cfg: cfg}
+func NewComponent(db file.LazyReadWriter, jiraFactory *jiraf.Factory, cfg *config.Component) *Component {
+	return &Component{db: db, jiraFactory: jiraFactory, cfg: cfg}
 }
 
 func (c *Component) Init() error {
@@ -35,7 +30,7 @@ func (c *Component) Init() error {
 	if err != nil {
 		return err
 	}
-	return c.db.WriteData(c.file, data)
+	return c.db.WriteData(data)
 }
 
 func (c *Component) GetJiraFactory() *jiraf.Factory {
@@ -287,7 +282,7 @@ func (c *Component) Edit(num int, opts EditOpts) error {
 }
 
 func (c *Component) getTimeline() (*Timeline, error) {
-	data, err := c.db.ReadData(c.file)
+	data, err := c.db.ReadData()
 	if err != nil {
 		return nil, err
 	}
@@ -306,5 +301,5 @@ func (c *Component) saveTimeline(t *Timeline) error {
 		return err
 	}
 
-	return c.db.WriteData(c.file, data)
+	return c.db.WriteData(data)
 }
