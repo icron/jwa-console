@@ -46,6 +46,13 @@ type Timeline struct {
 	List []*Model
 }
 
+func (t *Timeline) GetLast() (*Model, error) {
+	if len(t.List) == 0 {
+		return nil, ErrTimelineEmpty
+	}
+	return t.List[len(t.List)-1], nil
+}
+
 func (t *Timeline) GetCurrent() (*Model, error) {
 	if len(t.List) == 0 {
 		return nil, ErrTimelineEmpty
@@ -60,6 +67,15 @@ func (t *Timeline) Add(m *Model) {
 type DurationDescription struct {
 	Duration time.Duration
 	Summary  string
+}
+
+func (t *Timeline) GetTotalDuration() time.Duration {
+	var total int64 = 0
+	for _, task := range t.List {
+		total += int64(task.Duration().Seconds())
+	}
+
+	return time.Duration(total * int64(time.Second))
 }
 
 func (t *Timeline) GetDurationsByTasks() map[string]DurationDescription {
